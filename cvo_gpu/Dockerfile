@@ -92,8 +92,8 @@ RUN  mkdir -p /home/root/tmp/ \
 ########### Install ceres
 RUN cd /home/root/tmp \
 && wget http://ceres-solver.org/ceres-solver-2.0.0.tar.gz \
-&& tar zxf ceres-solver-2.0.0.tar.gz && mkdir ceres-bin && cmake ../ceres-solver-2.0.0 \
-&&  make -j4 && make install 
+&& tar zxf ceres-solver-2.0.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-2.0.0 \
+&&  make -j && make install 
 
 ########### Install pcl-1.9.1
 RUN cd /home/root/tmp/ \
@@ -104,7 +104,7 @@ RUN cd /home/root/tmp/ \
 
 COPY  boost.h  /home/root/tmp/pcl-1.9.1/io/include/pcl/io/boost.h
 
-RUN cd /home/root/tmp/pcl-1.9.1/build && cmake .. && make -j4 && make install
+RUN cd /home/root/tmp/pcl-1.9.1/build && cmake .. && make -j && make install
 
 RUN rm -rf /home/root/tmp/*
 
