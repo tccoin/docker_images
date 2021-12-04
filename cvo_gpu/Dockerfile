@@ -4,7 +4,7 @@ FROM nvidia/cuda:11.2.2-devel-ubuntu18.04
 # author
 MAINTAINER Ray Zhang
 
-LABEL version="1.2"
+LABEL version="1.3"
 LABEL description="Docker file: for setting up CVO-GPU"
 
 # optional, if the default user is not "root", you might need to switch to root here and at the end of the script to the original user again.
@@ -93,7 +93,17 @@ RUN  mkdir -p /home/root/tmp/ \
 RUN cd /home/root/tmp \
 && wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/1.14.0.tar.gz \
 && tar zxf 1.14.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-1.14.0 \
-&&  make -j && make install 
+&&  make -j && make install
+
+########### Install yaml-cpp 
+RUN cd /home/root/tmp \
+&& wget https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip \
+&& unzip yaml-cpp-0.7.0.zip && rm yaml-cpp-0.7.0.zip \
+&& mv yaml-cpp-yaml-cpp-0.7.0/ yaml-cpp-0.7.0/ 
+
+COPY CMakeLists.txt.yaml-cpp /home/root/tmp/yaml-cpp-0.7.0/CMakeLists.txt
+
+RUN cd /home/root/tmp/yaml-cpp-0.7.0/ && mkdir build && cd build && cmake .. && make -j && make install
 
 ########### Install pcl-1.9.1
 RUN cd /home/root/tmp/ \

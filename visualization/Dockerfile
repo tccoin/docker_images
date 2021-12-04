@@ -62,6 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
          gdb \
          clang \
          emacs \
+         libpcap-dev \
          gnupg2 \
          lsb-release && \
     apt clean  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
