@@ -67,12 +67,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
          emacs && \
     apt clean  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
-######## Install Eigen 3.3.7
+######## Install Eigen 3.3.9
 RUN  mkdir -p /home/root/tmp/ \
-&&   wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2 \
-&&   tar -xf eigen-3.3.7.tar.bz2  && rm eigen-3.3.7.tar.bz2 \
-&&   mv eigen-3.3.7 /home/root/tmp/eigen-3.3.7 \
-&&   cd /home/root/tmp/eigen-3.3.7  \
+&&   wget https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2 \
+&&   tar -xf eigen-3.3.9.tar.bz2  && rm eigen-3.3.9.tar.bz2 \
+&&   mv eigen-3.3.7 /home/root/tmp/eigen-3.3.9 \
+&&   cd /home/root/tmp/eigen-3.3.9  \
 &&   mkdir build && cd build && cmake .. && make -j && make install
 
 ######## Install sophus
