@@ -19,8 +19,12 @@ RUN apt-get update \
     && update-locale LANG=en_US.UTF-8
 
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN  apt update && apt-get install software-properties-common && \ 
+     add-apt-repository ppa:ubuntu-toolchain-r/test && \
+     apt-get update && apt-get install -y --no-install-recommends \
         sudo \
+        gcc-9 \
+        g++-9 \
         dialog \
         apt-utils \
         libeigen3-dev \
