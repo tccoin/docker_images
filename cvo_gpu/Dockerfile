@@ -91,8 +91,8 @@ RUN  mkdir -p /home/root/tmp/ \
 
 ########### Install ceres
 RUN cd /home/root/tmp \
-&& wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/1.14.0.tar.gz \
-&& tar zxf 1.14.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-1.14.0 \
+&& wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.0.0.tar.gz \
+&& tar zxf 2.0.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-2.0.0 \
 &&  make -j && make install
 
 ########### Install yaml-cpp 
