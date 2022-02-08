@@ -75,7 +75,7 @@ RUN  apt update && apt-get install software-properties-common && \
 RUN  mkdir -p /home/root/tmp/ \
 &&   wget https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2 \
 &&   tar -xf eigen-3.3.9.tar.bz2  && rm eigen-3.3.9.tar.bz2 \
-&&   mv eigen-3.3.7 /home/root/tmp/eigen-3.3.9 \
+&&   mv eigen-3.3.9 /home/root/tmp/eigen-3.3.9 \
 &&   cd /home/root/tmp/eigen-3.3.9  \
 &&   mkdir build && cd build && cmake .. && make -j && make install
 
