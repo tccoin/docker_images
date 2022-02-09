@@ -19,7 +19,7 @@ RUN apt-get update \
     && update-locale LANG=en_US.UTF-8
 
 
-RUN  apt update && apt-get install software-properties-common && \ 
+RUN  apt update && apt-get install -y software-properties-common && \ 
      add-apt-repository --allow-unauthenticated  ppa:ubuntu-toolchain-r/test && \
      apt-get update && apt-get install -y --no-install-recommends \
         sudo \
