@@ -62,3 +62,7 @@ Note: `xhost +` is simple but unsecure. Check other solutions [here](http://wiki
 ### Memory leak when running `roscore`?
 Use ulimits config of docker to limit the number of file descriptor. This is fixed by adding `ulimits` to `docker-compose.yml`. Detail information can be found here:
 https://answers.ros.org/question/336963/rosout-high-memory-usage/.
+
+### `g++: internal compiler error: Killed (program cc1plus)` (AKA. out of memory)
+
+To take full advantage of all CPU cores, this image will try to use 16 jobs to compile the libraries. However, this may cause an out-of-memory problem, especially when compiling OpenCV. In that case, you can change all `-j16` to `-j4` or even `-j1` to save memory. Another option is to add swap partition. See more discussion here: [make -j 8 g++: internal compiler error: Killed (program cc1plus)](https://stackoverflow.com/questions/30887143/make-j-8-g-internal-compiler-error-killed-program-cc1plus)
