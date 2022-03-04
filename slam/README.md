@@ -54,7 +54,7 @@ This docker file sets up the environment for [CURLY SLAM](https://github.com/UMi
 
 ### Can I use docker on my Mac or Windows PC?
 
-It depends. Using docker directly on your Mac will cause rviz to crush due to lack of GPU support. However, you may try to run docker in a virtual machine, where GPU functions are simulated. Using this image in a virtual machine will save your time in installing ROS environment. For GUI, please see this [guide (MacOS)](http://mamykin.com/posts/running-x-apps-on-mac-with-docker/) or [guide (Windows)](https://cuneyt.aliustaoglu.biz/en/running-gui-applications-in-docker-on-windows-linux-mac-hosts/).
+It depends. Using docker directly on your Mac will cause rviz to crash due to lack of GPU support. However, you may try to run docker in a virtual machine, where GPU functions are simulated. Using this image in a virtual machine will save your time in installing ROS environment. For GUI, please see this [guide (MacOS)](http://mamykin.com/posts/running-x-apps-on-mac-with-docker/) or [guide (Windows)](https://cuneyt.aliustaoglu.biz/en/running-gui-applications-in-docker-on-windows-linux-mac-hosts/).
 
 ### Can I use GUI in the container?
 
