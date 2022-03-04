@@ -5,11 +5,12 @@ This docker file sets up the environment for [CURLY SLAM](https://github.com/UMi
 ## Usage
 1. Install `docker` and `docker-compose`. See [Wiki](https://github.com/UMich-CURLY/docker_images/wiki) for more details about Docker.
 1. Make sure you have Nvidia driver installed.
-    - If you are not using Nvidia GPU or you are using docker on MacOS or Windows, change the first line of the `Dockerfile` to: 
+    - If you are not using Nvidia GPU, change the first line of the `Dockerfile` to: 
         ```
         FROM ubuntu:20.04
         ```
     - If you want to use `CUDA`, please follow [this guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#linux-distributions) to install `nvidia-container-toolkit`. Maybe skip this step for now if you don't know what `CUDA` is.
+    -  Docker on MacOS or Windows is not suggested because lack of GPU support. You may encounter opengl issues when using `rviz`.
 1. Clone this repository:
     ```bash
     git clone https://github.com/UMich-CURLY/docker_images.git
@@ -53,7 +54,7 @@ This docker file sets up the environment for [CURLY SLAM](https://github.com/UMi
 
 ### Can I use docker on my Mac or Windows PC?
 
-Yes, you can. Just follow the "not using Nvidia GPU" parts in the above instructions. For GUI, please see this [guide (MacOS)](http://mamykin.com/posts/running-x-apps-on-mac-with-docker/) or [guide (Windows)](https://cuneyt.aliustaoglu.biz/en/running-gui-applications-in-docker-on-windows-linux-mac-hosts/).
+It depends. Using docker directly on your Mac will cause rviz to crush due to lack of GPU support. However, you may try to run docker in a virtual machine, where GPU functions are simulated. Using this image in a virtual machine will save your time in installing ROS environment. For GUI, please see this [guide (MacOS)](http://mamykin.com/posts/running-x-apps-on-mac-with-docker/) or [guide (Windows)](https://cuneyt.aliustaoglu.biz/en/running-gui-applications-in-docker-on-windows-linux-mac-hosts/).
 
 ### Can I use GUI in the container?
 
