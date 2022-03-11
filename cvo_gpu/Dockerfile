@@ -19,8 +19,12 @@ RUN apt-get update \
     && update-locale LANG=en_US.UTF-8
 
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN  apt update && apt-get install -y software-properties-common && \ 
+     add-apt-repository --allow-unauthenticated  ppa:ubuntu-toolchain-r/test && \
+     apt-get update && apt-get install -y --no-install-recommends \
         sudo \
+        gcc-9 \
+        g++-9 \
         dialog \
         apt-utils \
         libeigen3-dev \
@@ -67,7 +71,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
          emacs && \
     apt clean  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
-######## Install Eigen 3.3.7
+######## Install Eigen 3.3.9
 RUN  mkdir -p /home/root/tmp/ \
 &&   wget https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2 \
 &&   tar -xf eigen-3.3.9.tar.bz2  && rm eigen-3.3.9.tar.bz2 \
