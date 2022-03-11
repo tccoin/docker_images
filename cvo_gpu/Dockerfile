@@ -20,7 +20,7 @@ RUN apt-get update \
 
 
 RUN  apt update && apt-get install -y software-properties-common && \ 
-     add-apt-repository --allow-unauthenticated  ppa:ubuntu-toolchain-r/test && \
+     add-apt-repository ppa:ubuntu-toolchain-r/test && \
      apt-get update && apt-get install -y --no-install-recommends \
         sudo \
         gcc-9 \
