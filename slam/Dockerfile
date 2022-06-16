@@ -151,3 +151,17 @@ RUN apt-get install -y --no-install-recommends libfmt-dev \
     && cd build \
     && cmake .. \
     && make install -j16
+
+RUN git clone https://github.com/lcm-proj/lcm.git  lcm/
+RUN cd lcm/ \
+    && mkdir -p build \
+    && cd build \
+    && cmake .. \
+    && make install -j16
+
+RUN git clone https://github.com/rmsalinas/fbow.git  fbow/
+RUN cd fbow/ \
+    && mkdir -p build \
+    && cd build \
+    && cmake .. \
+    && make install -j16
