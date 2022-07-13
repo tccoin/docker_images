@@ -94,7 +94,7 @@ RUN  mkdir -p /home/root/tmp/ \
 #&& mkdir build && cd build && cmake .. && make -j4 && make install
 
 ########### Install ceres
-RUN cd /home/root/tmp \
+RUN cd /home/root/tmp && export CC=gcc-9 && export CXX=g++-9 \
 && wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.1.0.tar.gz \
 && tar zxf 2.1.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-2.1.0 \
 &&  make -j && make install
@@ -110,7 +110,7 @@ COPY CMakeLists.txt.yaml-cpp /home/root/tmp/yaml-cpp-0.7.0/CMakeLists.txt
 RUN cd /home/root/tmp/yaml-cpp-0.7.0/ && mkdir build && cd build && cmake .. && make -j && make install
 
 ########### Install pcl-1.9.1
-RUN cd /home/root/tmp/ \
+RUN cd /home/root/tmp/ && export CC=gcc-9 && export CXX=g++-9  \
 && wget https://github.com/PointCloudLibrary/pcl/archive/pcl-1.9.1.tar.gz \
 && tar -xf pcl-1.9.1.tar.gz && rm pcl-1.9.1.tar.gz \
 && mv pcl-pcl-1.9.1 pcl-1.9.1  \
