@@ -16,10 +16,12 @@ RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y locales \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \ 
     && dpkg-reconfigure --frontend=noninteractive locales \
-    && update-locale LANG=en_US.UTF-8
+    && update-locale LANG=en_US.UTF-8 
 
+# patch fix: for nvidia deprecated key
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
 
-RUN  apt update && apt-get install -y software-properties-common && \ 
+RUN  apt update && apt-get install -y software-properties-common && \
      add-apt-repository ppa:ubuntu-toolchain-r/test && \
      apt-get update && apt-get install -y --no-install-recommends \
         sudo \
@@ -67,8 +69,7 @@ RUN  apt update && apt-get install -y software-properties-common && \
          software-properties-common \
          cmake-curses-gui \
          gdb \
-         clang  && \
-    apt clean  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+         clang  
 
 ######## Install Eigen 3.3.9
 RUN  mkdir -p /home/root/tmp/ \
@@ -145,7 +146,7 @@ RUN  apt update && \
      add-apt-repository ppa:kelleyk/emacs && \
      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
      apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'  && apt update &&\
-     apt install -y emacs27 clangd-10 bear mlocate global cmake && \
+     apt install -y emacs27 python3-pip clangd-10 bear mlocate global cmake && \
      apt clean  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
 RUN updatedb
