@@ -18,8 +18,9 @@ RUN apt-get update \
     && dpkg-reconfigure --frontend=noninteractive locales \
     && update-locale LANG=en_US.UTF-8 
 
-# patch fix: for nvidia deprecated key
-RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+# remove deprecated nvidia key
+RUN apt install -y wget && wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub | apt-key add - \
+   &&  apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
 
 RUN  apt update && apt-get install -y software-properties-common && \
      add-apt-repository ppa:ubuntu-toolchain-r/test && \
