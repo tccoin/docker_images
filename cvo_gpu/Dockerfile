@@ -69,8 +69,7 @@ RUN  apt update && apt-get install -y software-properties-common && \
          pkg-config \
          software-properties-common \
          cmake-curses-gui \
-         gdb \
-         clang  
+         gdb 
 
 ######## Install Eigen 3.3.9
 RUN  mkdir -p /home/root/tmp/ \
@@ -146,8 +145,10 @@ ENV NVIDIA_DRIVER_CAPABILITIES \
 RUN  apt update && \ 
      add-apt-repository ppa:kelleyk/emacs && \
      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
+     wget --no-check-certificate -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \ 
+     add-apt-repository 'deb http://apt.llvm.org/bionic/   llvm-toolchain-bionic-10  main' && \
      apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'  && apt update &&\
-     apt install -y emacs27 python3-pip clangd-10 bear mlocate global cmake && \
+     apt install -y emacs27 python3-pip clang-10 clangd-10 llvm-10 lldb-10 llvm-10-dev libllvm10 llvm-10-runtime bear mlocate global cmake && \
      apt clean  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
 RUN updatedb
