@@ -47,7 +47,7 @@ This docker file sets up the environment for [CURLY SLAM](https://github.com/UMi
     ```bash
     docker-compose run slam
     ```
-    Note: You don't need to run `docker-compose run slam` every time you want to enter your existing workspace. You can use `docker start [container_id]` and `docker exec -it [container_id] /bin/bash`  to enter your old container.  
+    Note: You don't need to run `docker-compose run slam` every time you want to enter your existing workspace. You can use `docker start [container_id]` and `docker exec -it [container_id] /bin/zsh`  to enter your old container.  
     
 1. Voilà！ Now try to build your ROS workspace!
 
