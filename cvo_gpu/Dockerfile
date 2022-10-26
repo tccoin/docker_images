@@ -99,7 +99,7 @@ RUN cd /home/root/tmp && export CC=gcc-9 && export CXX=g++-9 \
 && wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.1.0.tar.gz \
 &&   export CC=gcc-9 &&  export CXX=g++-9 \
 && tar zxf 2.1.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-2.1.0 \
-&&  make -j && make install
+&&  make -j4 && make install
 
 ########### Install yaml-cpp 
 RUN cd /home/root/tmp \
@@ -122,7 +122,7 @@ COPY  boost.h  /home/root/tmp/pcl-1.9.1/io/include/pcl/io/boost.h
 
 RUN cd /home/root/tmp/pcl-1.9.1/build  \
 &&   export CC=gcc-9 &&  export CXX=g++-9 \
-&& cmake .. && make -j8 && make install
+&& cmake .. && make -j4 && make install
 
 RUN rm -rf /home/root/tmp/*
 
@@ -141,7 +141,7 @@ ENV NVIDIA_VISIBLE_DEVICES \
 ENV NVIDIA_DRIVER_CAPABILITIES \
     ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
-# emacs tools
+# emacs tools. Feel free to comment them out of you don't use emacs and llvm tools
 RUN  apt update && \ 
      add-apt-repository ppa:kelleyk/emacs && \
      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
