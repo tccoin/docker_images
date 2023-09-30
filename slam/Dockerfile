@@ -190,10 +190,9 @@ RUN cd ./yaml-cpp-0.6.0/ \
     && env CFLAGS='-fPIC' CXXFLAGS='-fPIC' cmake -DCMAKE_BUILD_TYPE=Release -Bbuild \
     && cmake --build build -v
 
-RUN cd /home/root/tmp && export CC=gcc-9 && export CXX=g++-9 \
-    && wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.1.0.tar.gz \
-    &&   export CC=gcc-9 &&  export CXX=g++-9 \
+RUN wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.1.0.tar.gz \
+    && export CC=gcc-9 &&  export CXX=g++-9 \
     && tar zxf 2.1.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-2.1.0 \
-    &&  make -j8 && make install
+    && make -j8 && make install
 
 RUN pip3 install matplotlib --upgrade
