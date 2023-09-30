@@ -192,7 +192,8 @@ RUN cd ./yaml-cpp-0.6.0/ \
 
 RUN wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.1.0.tar.gz \
     && export CC=gcc-9 &&  export CXX=g++-9 \
-    && tar zxf 2.1.0.tar.gz && mkdir ceres-bin && cd ceres-bin && cmake ../ceres-solver-2.1.0 \
-    && make -j8 && make install
+    && tar zxf 2.1.0.tar.gz && mkdir ceres-bin && cd ceres-bin\
+    && cmake ../ceres-solver-2.1.0 -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF\
+    && make -j8 && sudo make install
 
 RUN pip3 install matplotlib --upgrade
