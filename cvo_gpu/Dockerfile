@@ -2,6 +2,8 @@ FROM nvidia/cudagl:11.3.0-devel-ubuntu18.04
 #FROM osrf/ros:melodic-desktop-full
 #ARG DEBIAN_FRONTEND=neoninteractive
 ARG USER
+ARG USER_ID
+ARG GROUP_ID
 
 # author
 MAINTAINER Ray Zhang
@@ -168,10 +170,15 @@ RUN  apt update && \
 RUN updatedb
 # USER original_user
 
+#RUN if  ! grep -q $GROUP_ID /etc/group ; then  groupadd --gid $GROUP_ID $USER; fi 
+#RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USER
 # use current user
-ARG USER_ID
-ARG GROUP_ID
-RUN if  ! grep -q $GROUP_ID /etc/group ; then  groupadd --gid $GROUP_ID $USER; fi 
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USER
+RUN adduser --disabled-password --gecos '' $USER
 RUN adduser $USER sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+USER $USER
+WORKDIR /home/$USER/
+
+
+#RUN adduser $USER sudo
+#RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers

@@ -26,8 +26,8 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /home/${USER}/code/docker_home/cvo:/home/${USER}/:rw
       - /run/media/${USER}/Samsung_T5:/home/${USER}/media:rw
-      - /media/sda1/${USER}:/home/${USER}/media/sda1:rw
-      - /media/sdc1/${USER}:/home/${USER}/media/sdc1:rw
+        #- /media/sda1/${USER}:/home/${USER}/media/sda1:rw
+        #- /media/sdc1/${USER}:/home/${USER}/media/sdc1:rw
         #- /etc/group:/etc/group
         #- /etc/passwd:/etc/passwd
         #- .bashrc:/home/${USER}/.bashrc:rw
@@ -42,6 +42,6 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 2
+              count: 1
               capabilities: [ gpu ]
     entrypoint: /bin/bash
