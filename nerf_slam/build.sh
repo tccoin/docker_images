@@ -1,0 +1,1 @@
+docker build --build-arg USER=$USER --tag tccoin/nerf_slam .
