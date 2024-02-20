@@ -1,7 +1,6 @@
-FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04
-LABEL org.opencontainers.image.authors="rzh@umich.edu,junzhewu@umich.edu"
-LABEL description="Container for CURLY Minimum Viable SLAM"
-LABEL version="0.6"
+FROM rrdockerhub/cudagl:11.7.1-devel-ubuntu20.04
+LABEL org.opencontainers.image.authors="junzhewu@umich.edu"
+LABEL version="0.3"
 ARG USER
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -69,9 +68,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-tk \
     python3-matplotlib \
     valgrind \
-    kcachegrind \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+    kcachegrind
+
+## Update cmake
+RUN sudo apt-get update \
+    && sudo apt-get install -y --no-install-recommends software-properties-common \
+    && wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add - \
+    && sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' \
+    && sudo apt-get install -y --no-install-recommends cmake \
+    && gcc --version
 
 # use current user
 RUN adduser --disabled-password --gecos '' $USER
@@ -93,22 +100,32 @@ RUN mkdir -p /home/$USER/.cache/gitstatus \
 RUN mkdir /home/$USER/slam_lib/
 WORKDIR /home/$USER/slam_lib/
 
-RUN git clone https://github.com/ToniRV/NeRF-SLAM.git --recurse-submodules \
+RUN git clone https://github.com/tccoin/NeRF-SLAM.git --recurse-submodules \
+    && cd NeRF-SLAM \
     && git submodule update --init --recursive
 
 WORKDIR /home/$USER/slam_lib/NeRF-SLAM/
 
+RUN pip install torch==1.13.0+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+
 RUN pip install -r requirements.txt \
-    pip install -r ./thirdparty/gtsam/python/requirements.txt
+    && pip install -r ./thirdparty/gtsam/python/requirements.txt
 
-RUN cmake ./thirdparty/instant-ngp -B build_ngp \
-    cmake --build build_ngp --config RelWithDebInfo -j
+RUN sudo apt-get install -y --no-install-recommends libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev \
+    libglew-dev \
+    && cmake ./thirdparty/instant-ngp -B build_ngp \
+    && cmake --build build_ngp --config RelWithDebInfo -j
 
-RUN cmake ./thirdparty/gtsam -DGTSAM_BUILD_PYTHON=1 -B build_gtsam  \
-    cmake --build build_gtsam --config RelWithDebInfo -j \
-    cd build_gtsam \
-    make python-install
+RUN cmake ./thirdparty/gtsam -DGTSAM_BUILD_PYTHON=1 -B build_gtsam \
+    && cmake --build build_gtsam --config RelWithDebInfo -j \
+    && cd build_gtsam \
+    && make python-install
 
-RUN python setup.py install
+RUN sudo chmod 777 /usr/local/lib/python3.8/dist-packages/ && python3 setup.py install 
 
-
+RUN pip3 install numpy==1.24.4 \
+    && pip uninstall -y torch-scatter \
+    && pip install torch-scatter

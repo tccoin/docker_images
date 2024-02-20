@@ -1,31 +1,18 @@
 version: '3.9'
 
-networks:
-  ros:
-    driver: bridge
-
 services:
-  ros-master:
-    image: umrobotics/curly_slam:latest
-    entrypoint: /bin/zsh
-    command: -c "source /opt/ros/melodic/setup.zsh && stdbuf -o L roscore"
-    networks:
-      - ros
-    restart: always
-    container_name: ros-master
 
   slam:
-    image: umcurly/curly_slam:latest
-    container_name: slam
-    networks:
-      - ros
+    image: tccoin/nerf_slam:latest
+    container_name: nerf_slam
+    network_mode: host
     environment:
       - "DISPLAY=${DISPLAY}"
       - "QT_GRAPHICSSYSTEM=native"
       - "NVIDIA_DRIVER_CAPABILITIES=all"
       - "TERM=xterm-256color"
       - "XAUTHORITY"
-    working_dir: "/home/${USER}/ws/"
+    working_dir: "/home/${USER}/projects/NeRF-SLAM/"
     privileged: true
     devices:
       - /dev/nvidia0
@@ -35,12 +22,11 @@ services:
       - /dev/nvidia-uvm-tools
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - $HOME/.Xauthority:/home/${USER}/.Xauthority:rw
       - .zshrc:/home/${USER}/.zshrc:rw
       - .zsh_history:/home/${USER}/.zsh_history:rw
-      - /home/$USER/Projects/curly_slam/:/home/${USER}/ws/
-      - /home/$USER/Projects/:/home/${USER}/projects/
-      # - /run/media/$USER/Samsung_T5/:/home/${USER}/media/Samsung_T5/
-      - /run/media/$USER/SLAM_DATA/data/:/home/${USER}/ws/data/
+      - /home/$USER/Projects/NeRF-SLAM:/home/${USER}/projects/NeRF-SLAM/
+      - /media/sdg1/junzhe/:/home/${USER}/dataset/
     ulimits:
       nofile:
         soft: 65536
