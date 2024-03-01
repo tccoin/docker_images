@@ -1,6 +1,6 @@
-FROM rrdockerhub/cudagl:11.7.1-devel-ubuntu20.04
+FROM kylevedder/cudagl:11.8.0-devel-ubuntu20.04
 LABEL org.opencontainers.image.authors="junzhewu@umich.edu"
-LABEL version="0.3"
+LABEL version="0.4"
 ARG USER
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -106,10 +106,18 @@ RUN git clone https://github.com/tccoin/NeRF-SLAM.git --recurse-submodules \
 
 WORKDIR /home/$USER/slam_lib/NeRF-SLAM/
 
-RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+RUN sudo add-apt-repository ppa:deadsnakes/ppa \
+    && sudo apt-get update \
+    && sudo apt-get install -y --no-install-recommends \
+    python3.9-dev \
+    && sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
 
-RUN pip install -r requirements.txt \
-    && pip install -r ./thirdparty/gtsam/python/requirements.txt
+RUN pip install torch==2.2.0+cu118 torchvision==0.17.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install numpy==1.24.4 \
+    && python3 -m pip install -r requirements.txt \
+    && python3 -m pip install -r ./thirdparty/gtsam/python/requirements.txt
 
 ENV TCNN_CUDA_ARCHITECTURES=86
 
@@ -126,8 +134,4 @@ RUN cmake ./thirdparty/gtsam -DGTSAM_BUILD_PYTHON=1 -B build_gtsam \
     && cd build_gtsam \
     && make python-install
 
-RUN sudo chmod 777 /usr/local/lib/python3.8/dist-packages/ && python3 setup.py install 
-
-RUN pip3 install numpy==1.24.4 \
-    && pip uninstall -y torch-scatter \
-    && pip install torch-scatter
+RUN sudo chmod 777 /usr/local/lib/python3.9/dist-packages/ && python3 setup.py install 

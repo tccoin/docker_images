@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   slam:
-    image: tccoin/nerf_slam:latest
+    image: tccoin/nerf_slam:torch_2_2
     container_name: nerf_slam
     network_mode: host
     environment:
@@ -26,7 +26,7 @@ services:
       - .zshrc:/home/${USER}/.zshrc:rw
       - .zsh_history:/home/${USER}/.zsh_history:rw
       - /home/$USER/Projects/NeRF-SLAM:/home/${USER}/projects/NeRF-SLAM/
-      - /media/sdg1/junzhe/:/home/${USER}/dataset/
+      - /home/junzhe/Projects/data/:/home/${USER}/dataset/
     ulimits:
       nofile:
         soft: 65536
