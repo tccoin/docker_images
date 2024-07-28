@@ -132,14 +132,23 @@ RUN sudo apt update \
     mesa-utils \
     ros-noetic-rqt \
     ros-noetic-rqt-rviz \
-    ros-noetic-rqt-common-plugins
-
-RUN git clone https://github.com/tccoin/ORB_SLAM3_fixed.git ORB_SLAM3
-RUN git clone https://github.com/stevenlovegrove/Pangolin.git ORB_SLAM3/Thirdparty/Pangolin
-
-RUN sudo apt update \
-    && sudo apt install -y --no-install-recommends \
+    ros-noetic-rqt-common-plugins \
+    python3-catkin-tools \
+    python3-rosdep \
     libepoxy-dev
 
-RUN cd ORB_SLAM3 && bash build.sh
-RUN cd ORB_SLAM3 && bash build_ros.sh
+RUN git clone https://github.com/stevenlovegrove/Pangolin.git Pangolin
+RUN cd Pangolin \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make -j \
+    && sudo make install
+
+RUN git clone https://github.com/tccoin/ORB_SLAM3_fixed.git ORB_SLAM3
+
+RUN mkdir -p catkin_ws/src \
+    && cd catkin_ws/src \
+    && git clone https://github.com/thien94/orb_slam3_ros.git \
+    && cd .. \
+    && catkin config --extend /opt/ros/noetic \
+    && catkin build
