@@ -1,24 +1,10 @@
 version: '3.9'
 
-networks:
-  ros:
-    driver: bridge
-
 services:
-  ros-master:
-    image: umrobotics/curly_slam:latest
-    entrypoint: /bin/zsh
-    command: -c "source /opt/ros/melodic/setup.zsh && stdbuf -o L roscore"
-    networks:
-      - ros
-    restart: always
-    container_name: ros-master
-
-  slam:
-    image: umcurly/curly_slam:latest
-    container_name: slam
-    networks:
-      - ros
+  orbslam3:
+    image: tccoin/orb_slam_3:latest
+    container_name: orbslam3
+    network_mode: "host"
     environment:
       - "DISPLAY=${DISPLAY}"
       - "QT_GRAPHICSSYSTEM=native"
@@ -37,10 +23,8 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - .zshrc:/home/${USER}/.zshrc:rw
       - .zsh_history:/home/${USER}/.zsh_history:rw
-      - /home/$USER/Projects/curly_slam/:/home/${USER}/ws/
       - /home/$USER/Projects/:/home/${USER}/projects/
-      # - /run/media/$USER/Samsung_T5/:/home/${USER}/media/Samsung_T5/
-      - /run/media/$USER/SLAM_DATA/data/:/home/${USER}/ws/data/
+      # - /run/media/$USER/SLAM_DATA/data/:/dataset/
     ulimits:
       nofile:
         soft: 65536

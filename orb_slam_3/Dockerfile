@@ -101,8 +101,8 @@ RUN mkdir -p /home/$USER/.cache/gitstatus \
 
 
 # install libraries
-RUN mkdir -p /home/$USER/lib/
-WORKDIR /home/$USER/lib/
+RUN mkdir -p /home/$USER/
+WORKDIR /home/$USER/
 
 
 RUN wget https://github.com/opencv/opencv/archive/4.5.5.zip -q -O opencv.zip \
@@ -123,8 +123,8 @@ RUN cd opencv/ \
     -DOPENCV_ENABLE_NONFREE=ON .. \
     && sudo make install -j6
 
-RUN mkdir -p /home/$USER/catkin_ws/src
-WORKDIR /home/$USER/catkin_ws/src
+RUN mkdir -p /home/$USER/
+WORKDIR /home/$USER/
 
 RUN sudo apt update \
     && sudo apt install -y --no-install-recommends \
@@ -134,7 +134,12 @@ RUN sudo apt update \
     ros-noetic-rqt-rviz \
     ros-noetic-rqt-common-plugins
 
-RUN git clone https://github.com/tccoin/ORB_SLAM3_fixed.git ORB_SLAM3/
-RUN cd ORB_SLAM3/ \
-    && bash build.sh \
-    && bash build_ros.sh
+RUN git clone https://github.com/tccoin/ORB_SLAM3_fixed.git ORB_SLAM3
+RUN git clone https://github.com/stevenlovegrove/Pangolin.git ORB_SLAM3/Thirdparty/Pangolin
+
+RUN sudo apt update \
+    && sudo apt install -y --no-install-recommends \
+    libepoxy-dev
+
+RUN cd ORB_SLAM3 && bash build.sh
+RUN cd ORB_SLAM3 && bash build_ros.sh
