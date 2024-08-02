@@ -1,7 +1,6 @@
-FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04
+FROM rrdockerhub/cudagl:11.7.1-devel-ubuntu20.04
 LABEL org.opencontainers.image.authors="junzhewu@umich.edu"
-LABEL description="Container for modified ORB SLAM 3"
-LABEL version="1.0"
+LABEL version="0.3"
 ARG USER
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -69,19 +68,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-tk \
     python3-matplotlib \
     valgrind \
-    kcachegrind \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+    kcachegrind
 
-# install ROS
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-
-RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ros-noetic-desktop-full \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+## Update cmake
+RUN sudo apt-get update \
+    && sudo apt-get install -y --no-install-recommends software-properties-common \
+    && wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add - \
+    && sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' \
+    && sudo apt-get install -y --no-install-recommends cmake \
+    && gcc --version
 
 # use current user
 RUN adduser --disabled-password --gecos '' $USER
@@ -99,38 +96,25 @@ RUN mkdir -p /home/$USER/.cache/gitstatus \
     && wget https://github.com/romkatv/gitstatus/releases/download/v1.5.4/gitstatusd-linux-x86_64.tar.gz -O - \
     | tar -zx -C /home/$USER/.cache/gitstatus/
 
+# install slam libraries
+RUN mkdir /home/$USER/slam_lib/
+WORKDIR /home/$USER/slam_lib/
 
-# install libraries
-RUN mkdir -p /home/$USER/
-WORKDIR /home/$USER/
+RUN git clone https://github.com/tccoin/gaussian-splatting.git --recurse-submodules \
+    && cd gaussian-splatting \
+    && git submodule update --init --recursive
 
+WORKDIR /home/$USER/slam_lib/gaussian-splatting/
 
-RUN mkdir -p /home/$USER/
-WORKDIR /home/$USER/
+RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
 
-RUN sudo apt update \
-    && sudo apt install -y --no-install-recommends \
-    ros-noetic-rviz \
-    mesa-utils \
-    ros-noetic-rqt \
-    ros-noetic-rqt-rviz \
-    ros-noetic-rqt-common-plugins \
-    python3-catkin-tools \
-    python3-rosdep \
-    libepoxy-dev
+RUN pip install plyfile==0.8.1 tqdm cudatoolkit==11.8 \
+    && pip install submodules\diff-gaussian-rasterization \
+    && pip install submodules\simple-knn
 
-RUN git clone https://github.com/stevenlovegrove/Pangolin.git Pangolin
-RUN cd Pangolin \
-    && mkdir build && cd build \
-    && cmake .. \
-    && make -j \
-    && sudo make install
+RUN cd ~/slam_lib/gaussian-splatting/SIBR_viewers/ \
+    && sudo apt-get install -y libglew-dev libassimp-dev libboost-all-dev libgtk-3-dev libopencv-dev libglfw3-dev libavdevice-dev libavcodec-dev libeigen3-dev libxxf86vm-dev libembree-dev \
+    && cmake -Bbuild . -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build --target install
 
-RUN git clone https://github.com/tccoin/ORB_SLAM3_fixed.git ORB_SLAM3
-
-RUN mkdir -p catkin_ws/src \
-    && cd catkin_ws/src \
-    && git clone https://github.com/thien94/orb_slam3_ros.git \
-    && cd .. \
-    && catkin config --extend /opt/ros/noetic \
-    && catkin build
+RUN sudo chmod 777 /usr/local/lib/python3.9/dist-packages/

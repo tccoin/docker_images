@@ -21,10 +21,11 @@ services:
       - /dev/nvidia-uvm-tools
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /home/$USER/.Xauthority:/home/${USER}/.Xauthority:rw
       - .zshrc:/home/${USER}/.zshrc:rw
       - .zsh_history:/home/${USER}/.zsh_history:rw
       - /home/$USER/Projects/:/home/${USER}/projects/
-      # - /run/media/$USER/SLAM_DATA/data/:/dataset/
+      - /run/media/$USER/SLAM_DATA/data/:/dataset/
     ulimits:
       nofile:
         soft: 65536
