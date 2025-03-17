@@ -1,0 +1,1 @@
+docker build -t "tccoin/colmap:cuda120" .

@@ -17,7 +17,8 @@ services:
   slam:
     image: umcurly/curly_slam:latest
     container_name: slam
-    network_mode: host
+    networks:
+      - ros
     environment:
       - "DISPLAY=${DISPLAY}"
       - "QT_GRAPHICSSYSTEM=native"
@@ -34,12 +35,12 @@ services:
       - /dev/nvidia-uvm-tools
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - $HOME/.Xauthority:/home/${USER}/.Xauthority:rw
       - .zshrc:/home/${USER}/.zshrc:rw
       - .zsh_history:/home/${USER}/.zsh_history:rw
       - /home/$USER/Projects/curly_slam/:/home/${USER}/ws/
       - /home/$USER/Projects/:/home/${USER}/projects/
-      - /home/shared/data/:/home/${USER}/ws/data/
+      # - /run/media/$USER/Samsung_T5/:/home/${USER}/media/Samsung_T5/
+      - /run/media/$USER/SLAM_DATA/data/:/home/${USER}/ws/data/
     ulimits:
       nofile:
         soft: 65536
