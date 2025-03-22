@@ -1,3 +1,4 @@
+touch .zsh_history
 docker pull nvcr.io/nvidia/isaac-sim:4.5.0
 # sudo apt-get install docker-buildx-plugin
 # sudo pacman -S docker-buildx

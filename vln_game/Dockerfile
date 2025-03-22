@@ -209,9 +209,21 @@ RUN curl -fsSL https://ollama.com/install.sh | sh
 # --- Install Ground-SAM
 RUN git clone https://github.com/IDEA-Research/Grounded-Segment-Anything.git && \
     cd Grounded-Segment-Anything && \
+    git submodule update --init --recursive && \
     python -m pip install -e segment_anything && \
     python -m pip install -e GroundingDINO
-RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-RUN wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+RUN cd Grounded-Segment-Anything && git clone https://github.com/mattmazzola/Tag2Text.git
+RUN cd Grounded-Segment-Anything && wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN cd Grounded-Segment-Anything && wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+RUN cd Grounded-Segment-Anything && wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
+RUN cd Grounded-Segment-Anything && wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
+
+# --- Install VLN-Game dependencies
 RUN git clone https://github.com/ybgdgh/VLN-Game
 RUN cd VLN-Game && pip install -r requirements.txt
+ENV GSA_PATH=/dependencies/Grounded-Segment-Anything
+RUN conda install -y pytorch::faiss-gpu
+RUN pip install git+https://github.com/xinyu1205/recognize-anything.git
+RUN pip install fairscale
+
+# sudo apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils

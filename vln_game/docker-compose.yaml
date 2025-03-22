@@ -1,12 +1,14 @@
 services:
-    isaacsim:
-        image: curly/isaacsim:latest
-        container_name: isaac-sim
+    vln:
+        image: curly/vln_game:latest
+        container_name: vln_game
         entrypoint: zsh
         runtime: nvidia
         environment:
             - ACCEPT_EULA=Y
             - PRIVACY_CONSENT=Y
+            - VNC_PASSWORD=curly
+            - RESOLUTION=1920x1080
             # - DISPLAY=${DISPLAY}
             # - QT_GRAPHICSSYSTEM=native
             # - NVIDIA_DRIVER_CAPABILITIES=all
@@ -14,17 +16,16 @@ services:
             # - XAUTHORITY
         network_mode: host
         volumes:
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/pip:$HOME/.cache/pip:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/glcache:$HOME/.cache/nvidia/GLCache:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/computecache:$HOME/.nv/ComputeCache:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/logs:$HOME/.nvidia-omniverse/logs:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/data:$HOME/.local/share/ov/data:rw
-            - $HOME/Projects/VLN/isaac_sim/isaac_files/documents:$HOME/Documents:rw
-            - $HOME/Projects/VLN/:/isaac-sim/VLN:rw
-            - $HOME/data/:/isaac-sim/data:rw
-            - $HOME/data/habitat:/isaac-sim/VLN/data:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/pip:$HOME/.cache/pip:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/glcache:$HOME/.cache/nvidia/GLCache:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/computecache:$HOME/.nv/ComputeCache:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/logs:$HOME/.nvidia-omniverse/logs:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/data:$HOME/.local/share/ov/data:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/documents:$HOME/Documents:rw
+            - $HOME/Projects/:/root/Projects:rw
+            - /media/sdd1/:/data:rw
             # - /tmp/.X11-unix:/tmp/.X11-unix:rw
             # - $HOME/.Xauthority:/root/.Xauthority:rw
             - .zshrc:/root/.zshrc:rw
