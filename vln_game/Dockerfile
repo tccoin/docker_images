@@ -173,15 +173,6 @@ RUN pip uninstall -y urllib3 && pip install urllib3
 RUN conda create --name vln python=3.10
 ENV PATH $CONDA_DIR/envs/vln/bin:$PATH_BACKUP
 
-# --- Install isaac lab
-RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
-RUN cd IsaacLab \
-    && pip install isaacsim-rl \
-    && ./isaaclab.sh --install
-
 # --- Install CUDA 12.1
 RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run
 RUN TERM=xterm sh cuda_12.1.0_530.30.02_linux.run --silent --toolkit \
@@ -194,13 +185,15 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:${LD_LIBRARY_PATH}
 RUN git clone --branch v0.2.1 https://github.com/facebookresearch/habitat-sim.git
 RUN cd habitat-sim \
     && pip install -r requirements.txt \
-    && python setup.py install --with-cuda --headless
+    && python setup.py install --headless --with-cuda --bullet
 
 # --- Install habitat-lab
 RUN git clone --branch v0.2.1 https://github.com/facebookresearch/habitat-lab.git
 RUN cd habitat-lab \
     && pip install -e .
 
+# --- Install torch, torch3d, and ollama
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 RUN wget https://anaconda.org/pytorch3d/pytorch3d/0.7.8/download/linux-64/pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2 \
     && conda install pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2 \
     && rm pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2
@@ -209,21 +202,46 @@ RUN curl -fsSL https://ollama.com/install.sh | sh
 # --- Install Ground-SAM
 RUN git clone https://github.com/IDEA-Research/Grounded-Segment-Anything.git && \
     cd Grounded-Segment-Anything && \
-    git submodule update --init --recursive && \
-    python -m pip install -e segment_anything && \
-    python -m pip install -e GroundingDINO
-RUN cd Grounded-Segment-Anything && git clone https://github.com/mattmazzola/Tag2Text.git
-RUN cd Grounded-Segment-Anything && wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-RUN cd Grounded-Segment-Anything && wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-RUN cd Grounded-Segment-Anything && wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
-RUN cd Grounded-Segment-Anything && wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
+    git submodule update --init --recursive
+WORKDIR /dependencies/Grounded-Segment-Anything
+RUN python -m pip install -e segment_anything
+RUN pip install --no-build-isolation -e GroundingDINO
+RUN git clone https://github.com/mattmazzola/Tag2Text.git
+RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+# RUN wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
+# RUN wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
+
+# --- Fix library issues
+RUN mkdir -p /usr/lib/dri/ && \
+    ln -s /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so /usr/lib/dri/ && \
+    ln -s /usr/lib/x86_64-linux-gnu/dri/radeonsi_dri.so /usr/lib/dri/ && \
+    mv /root/conda/envs/vln/lib/libstdc++.so.6 /root/conda/envs/vln/lib/libstdc++.so.6.old && \
+    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /root/conda/envs/vln/lib/libstdc++.so.6
+
+# Apply patches to habitat
+COPY habitat/dataset.py /dependencies/habitat-lab/habitat/core/
+COPY habitat/nav.py /dependencies/habitat-lab/habitat/tasks/nav/
+
+SHELL ["conda", "run", "-n", "vln", "/bin/bash", "-c"]
 
 # --- Install VLN-Game dependencies
+WORKDIR /dependencies
 RUN git clone https://github.com/ybgdgh/VLN-Game
 RUN cd VLN-Game && pip install -r requirements.txt
 ENV GSA_PATH=/dependencies/Grounded-Segment-Anything
-RUN conda install -y pytorch::faiss-gpu
 RUN pip install git+https://github.com/xinyu1205/recognize-anything.git
-RUN pip install fairscale
+RUN conda install -y numpy==1.26.4 pytorch::faiss-gpu
+RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2 opencv-python==4.9.0.80
+
+# --- Install isaac lab
+# RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
+# RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+# RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
+# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
+# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
+# RUN cd IsaacLab \
+#     && pip install isaacsim-rl \
+#     && ./isaaclab.sh --install
 
 # sudo apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils

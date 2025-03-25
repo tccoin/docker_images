@@ -1,0 +1,1 @@
+docker compose run --name sg_nav -P vln

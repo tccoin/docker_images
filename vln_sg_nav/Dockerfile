@@ -93,19 +93,12 @@ RUN mkdir -p /root/.cache/gitstatus \
 
 # --- Install conda and environment
 ENV CONDA_DIR /root/conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh \
+    && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
 ENV PATH $CONDA_DIR/bin:$PATH
-RUN conda create --name isaac python=3.10
-ENV PATH $CONDA_DIR/envs/isaac/bin:$PATH
-
-# --- Install isaac lab
-RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
-RUN cd IsaacLab \
-    && pip install isaacsim-rl \
-    && ./isaaclab.sh --install
+ENV PATH_BACKUP $PATH
+RUN conda create -n webvnc python=3.10
+ENV PATH $CONDA_DIR/envs/webvnc/bin:$PATH_BACKUP
 
 # --- Install webvnc
 RUN apt update \
@@ -144,10 +137,10 @@ RUN apt update \
     && mkdir /usr/local/ffmpeg \
     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
-# python library
 RUN git clone --recurse-submodules https://github.com/tccoin/docker-ubuntu-vnc-desktop.git /webvnc
 RUN pip3 install backports.ssl-match-hostname==3.7.0.1 certifi==2019.9.11 chardet==3.0.4 Click==7.0 Flask==1.1.1 Flask-Login==0.4.1 idna==2.8 itsdangerous==1.1.0 Jinja2==2.10.3 MarkupSafe==1.1.1 meld3==2.0.0 requests==2.22.0 six==1.12.0 urllib3==1.25.6 websocket-client==0.47.0 Werkzeug==0.16.0 gevent gevent-websocket greenlet
 # RUN pip3 install -r /webvnc/rootfs/usr/local/lib/web/backend/requirements.txt
+
 # builder
 FROM ubuntu:22.04 as builder
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
@@ -175,7 +168,10 @@ RUN cp -r /webvnc/rootfs/* /
 RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
     chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
-WORKDIR /
+WORKDIR /dependencies
+RUN pip uninstall -y urllib3 && pip install urllib3
+RUN conda create --name vln python=3.10
+ENV PATH $CONDA_DIR/envs/vln/bin:$PATH_BACKUP
 
 # --- Install CUDA 12.1
 RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run
@@ -186,7 +182,7 @@ ENV PATH=/usr/local/cuda-12.1/bin:${PATH}
 ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:${LD_LIBRARY_PATH}
 
 # --- Install habitat-sim
-RUN git clone --branch v0.2.5 https://github.com/facebookresearch/habitat-sim.git
+RUN git clone --branch v0.2.1 https://github.com/facebookresearch/habitat-sim.git
 RUN cd habitat-sim \
     && pip install -r requirements.txt \
     && python setup.py install --with-cuda --headless

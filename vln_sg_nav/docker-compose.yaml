@@ -12,7 +12,9 @@ services:
             # - NVIDIA_DRIVER_CAPABILITIES=all
             # - TERM=xterm-256color
             # - XAUTHORITY
-        network_mode: host
+        ports:
+            - "5901:5900"
+            - "6080:80"
         volumes:
             - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
             - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
