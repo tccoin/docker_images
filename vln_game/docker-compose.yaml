@@ -14,8 +14,8 @@ services:
             # - TERM=xterm-256color
             # - XAUTHORITY
         ports:
-            - "5901:5900"
-            - "6080:80"
+            - "5905:5900"
+            # - "6080:80"
         volumes:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
@@ -27,14 +27,19 @@ services:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/documents:$HOME/Documents:rw
             - /mnt/localdisk2/tiamat/junzhe/Projects/:/root/Projects:rw
             - /mnt/localdisk2/tiamat/data/:/data:rw
+            - /mnt/workspace/users/huyu/junzhe/VLN_dump:/root/Projects/VLN/ext_dump/:rw
             # - /tmp/.X11-unix:/tmp/.X11-unix:rw
             # - $HOME/.Xauthority:/root/.Xauthority:rw
             - .zshrc:/root/.zshrc:rw
             - .zsh_history:/root/.zsh_history:rw
+        ulimits:
+            nofile:
+                soft: 65536
+                hard: 65536
         deploy:
             resources:
                 reservations:
                     devices:
                         - driver: nvidia
                           count: all
-                          capabilities: [gpu]
+                          capabilities: [ gpu ]

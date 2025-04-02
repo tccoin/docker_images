@@ -168,18 +168,19 @@ RUN cp -r /webvnc/rootfs/* /
 RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
     chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
-WORKDIR /dependencies
-RUN pip uninstall -y urllib3 && pip install urllib3
-RUN conda create --name vln python=3.10
-ENV PATH $CONDA_DIR/envs/vln/bin:$PATH_BACKUP
-
 # --- Install CUDA 12.1
 RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run
 RUN TERM=xterm sh cuda_12.1.0_530.30.02_linux.run --silent --toolkit \
     && rm cuda_12.1.0_530.30.02_linux.run
 RUN echo /var/log/cuda-installer.log
-ENV PATH=/usr/local/cuda-12.1/bin:${PATH}
+ENV PATH=/usr/local/cuda-12.1/bin:${PATH_BACKUP}
 ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:${LD_LIBRARY_PATH}
+
+WORKDIR /dependencies
+RUN pip uninstall -y urllib3 && pip install urllib3
+RUN conda create --name vln python=3.10
+ENV PATH $CONDA_DIR/envs/vln/bin:$PATH
+SHELL ["conda", "run", "-n", "vln", "/bin/bash", "-c"]
 
 # --- Install habitat-sim
 RUN git clone --branch v0.2.1 https://github.com/facebookresearch/habitat-sim.git
@@ -192,25 +193,33 @@ RUN git clone --branch v0.2.1 https://github.com/facebookresearch/habitat-lab.gi
 RUN cd habitat-lab \
     && pip install -e .
 
-# --- Install torch, torch3d, and ollama
+# --- Install common python dependencies
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 RUN wget https://anaconda.org/pytorch3d/pytorch3d/0.7.8/download/linux-64/pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2 \
     && conda install pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2 \
     && rm pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2
 RUN curl -fsSL https://ollama.com/install.sh | sh
+RUN pip3 install scikit-image pslpython open3d omegaconf git+https://github.com/openai/CLIP.git nltk einops ftfy scikit-fmm ollama openai matplotlib==3.9
 
 # --- Install Ground-SAM
 RUN git clone https://github.com/IDEA-Research/Grounded-Segment-Anything.git && \
     cd Grounded-Segment-Anything && \
     git submodule update --init --recursive
 WORKDIR /dependencies/Grounded-Segment-Anything
-RUN python -m pip install -e segment_anything
-RUN pip install --no-build-isolation -e GroundingDINO
 RUN git clone https://github.com/mattmazzola/Tag2Text.git
 RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 RUN wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 # RUN wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
 # RUN wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
+ENV CUDA_HOME /usr/local/cuda-12.1/
+ENV AM_I_DOCKER True
+ENV TORCH_CUDA_ARCH_LIST="6.0;7.0;7.5;8.0;8.6"
+ENV BUILD_WITH_CUDA 1
+RUN python -m pip install --no-cache-dir -e segment_anything
+RUN python -m pip install --upgrade pip
+RUN python -m pip install --upgrade setuptools wheel twine check-wheel-contents
+RUN python -m pip install --no-cache-dir wheel
+RUN python -m pip install --no-cache-dir --no-build-isolation -e GroundingDINO
 
 # --- Fix library issues
 RUN mkdir -p /usr/lib/dri/ && \
@@ -223,16 +232,21 @@ RUN mkdir -p /usr/lib/dri/ && \
 COPY habitat/dataset.py /dependencies/habitat-lab/habitat/core/
 COPY habitat/nav.py /dependencies/habitat-lab/habitat/tasks/nav/
 
-SHELL ["conda", "run", "-n", "vln", "/bin/bash", "-c"]
-
 # --- Install VLN-Game dependencies
 WORKDIR /dependencies
 RUN git clone https://github.com/ybgdgh/VLN-Game
 RUN cd VLN-Game && pip install -r requirements.txt
 ENV GSA_PATH=/dependencies/Grounded-Segment-Anything
 RUN pip install git+https://github.com/xinyu1205/recognize-anything.git
-RUN conda install -y numpy==1.26.4 pytorch::faiss-gpu
-RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2 opencv-python==4.9.0.80
+RUN pip uninstall -y open3d
+RUN pip install numpy==1.26.4 open3d==0.19.0
+RUN conda install -y pytorch::faiss-gpu
+RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2 opencv-python==4.9.0.80 watchdog ipython
+
+# --- Download llama3.2-vision with ollama
+RUN ollama serve & sleep 5 ; ollama pull llama3.2-vision ; \
+    echo "kill 'ollama serve' process" ; \
+    ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
 
 # --- Install isaac lab
 # RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com

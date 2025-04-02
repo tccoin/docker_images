@@ -20,5 +20,5 @@ Then connect to the server using a vnc client.
 ## Run VLN
 ```bash
 conda activate vln
-python -u main_vis.py -v 1 --fmm_planner
+bash run_vis_multi.sh
 ```
