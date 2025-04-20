@@ -242,21 +242,23 @@ RUN pip install git+https://github.com/xinyu1205/recognize-anything.git
 RUN pip uninstall -y open3d
 RUN pip install open3d==0.19.0
 RUN conda install -y pytorch::faiss-gpu
-RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2 opencv-python==4.9.0.80 watchdog ipython
-
+RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2 opencv-python==4.9.0.80 watchdog ipython spatialmath-python
+RUN pip install duckdb 'ibis-framework[duckdb]' pins gcsfs 
+RUN pip install nvitop
+RUN sudo apt-get update && sudo apt-get install -y htop
 # --- Download llama3.2-vision with ollama
 RUN ollama serve & sleep 5 ; ollama pull llama3.2-vision ; \
     echo "kill 'ollama serve' process" ; \
     ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
 
 # --- Install isaac lab
-# RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
-# RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-# RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
-# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
-# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
-# RUN cd IsaacLab \
-#     && pip install isaacsim-rl \
-#     && ./isaaclab.sh --install
+RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
+RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
+RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
+RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
+RUN cd IsaacLab \
+    && pip install isaacsim-rl \
+    && ./isaaclab.sh --install
 
-# sudo apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
+RUN apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
