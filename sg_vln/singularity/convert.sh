@@ -22,7 +22,7 @@ if [ ! -f "$SINGULARITY_IMAGE" ]; then
     SINGULARITY_IMAGE="vln_sg_nav.sif"
 
     # Create a temporary directory with more space
-    TEMP_DIR="/home/junzhewu/Projects/singularity/tmp"
+    TEMP_DIR=~/singularity_tmp
     mkdir -p $TEMP_DIR
 
     # Set environment variable to use this directory for temporary files
@@ -30,10 +30,10 @@ if [ ! -f "$SINGULARITY_IMAGE" ]; then
 
     echo "Building Singularity container for VLN..."
     echo "Using temporary directory: $SINGULARITY_TMPDIR"
-    echo "Building from local Docker image: curly/vln_game:singularity"
+    echo "Building from local Docker image"
 
     # Build from the local Docker image
-    singularity build $SINGULARITY_IMAGE docker-daemon://curly/vln_game:singularity
+    singularity build $SINGULARITY_IMAGE docker-daemon://curly/sg_vln:latest
 
     if [ $? -eq 0 ]; then
         echo "Singularity container built successfully at $SINGULARITY_IMAGE"
