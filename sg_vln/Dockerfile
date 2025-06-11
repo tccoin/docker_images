@@ -97,7 +97,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
 ENV PATH $CONDA_DIR/bin:$PATH
 ENV PATH_BACKUP $PATH
-RUN conda create -n webvnc python=3.10
+RUN conda create -n webvnc python=3.6
 ENV PATH $CONDA_DIR/envs/webvnc/bin:$PATH_BACKUP
 
 # --- Install webvnc
