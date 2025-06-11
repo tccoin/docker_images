@@ -178,20 +178,30 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:${LD_LIBRARY_PATH}
 
 WORKDIR /dependencies
 RUN pip uninstall -y urllib3 && pip install urllib3
-RUN conda create --name vln python=3.10
+RUN conda create --name vln python=3.9
 ENV PATH $CONDA_DIR/envs/vln/bin:$PATH
 SHELL ["conda", "run", "-n", "vln", "/bin/bash", "-c"]
 
 # --- Install habitat-sim
-RUN git clone --branch v0.3,3 https://github.com/facebookresearch/habitat-sim.git
-RUN cd habitat-sim \
-    && pip install -r requirements.txt \
-    && python setup.py install --headless --with-cuda --bullet
+RUN conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
 
 # --- Install habitat-lab
 RUN git clone --branch v0.3.3 https://github.com/facebookresearch/habitat-lab.git
 RUN cd habitat-lab \
     && pip install -e habitat-lab
+
+
+# --- Install isaac lab
+# RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
+# RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+# RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
+# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
+# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
+# RUN cd IsaacLab \
+#     && pip install isaacsim-rl \
+#     && ./isaaclab.sh --install
+
+RUN apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
 
 # --- Install common python dependencies
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
@@ -209,8 +219,7 @@ WORKDIR /dependencies/Grounded-Segment-Anything
 RUN git clone https://github.com/mattmazzola/Tag2Text.git
 RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 RUN wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-# RUN wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
-# RUN wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
+
 ENV CUDA_HOME /usr/local/cuda-12.1/
 ENV AM_I_DOCKER True
 ENV TORCH_CUDA_ARCH_LIST="6.0;7.0;7.5;8.0;8.6"
@@ -228,10 +237,6 @@ RUN mkdir -p /usr/lib/dri/ && \
     mv /root/conda/envs/vln/lib/libstdc++.so.6 /root/conda/envs/vln/lib/libstdc++.so.6.old && \
     ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /root/conda/envs/vln/lib/libstdc++.so.6
 
-# Apply patches to habitat
-# COPY habitat/dataset.py /dependencies/habitat-lab/habitat/core/
-# COPY habitat/nav.py /dependencies/habitat-lab/habitat/tasks/nav/
-
 # --- Install VLN-Game dependencies
 WORKDIR /dependencies
 # RUN git clone https://github.com/ybgdgh/VLN-Game
@@ -246,19 +251,15 @@ RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2
 RUN pip install duckdb 'ibis-framework[duckdb]' pins gcsfs 
 RUN pip install nvitop
 RUN sudo apt-get update && sudo apt-get install -y htop
+
 # --- Download llama3.2-vision with ollama
 RUN ollama serve & sleep 5 ; ollama pull llama3.2-vision ; \
     echo "kill 'ollama serve' process" ; \
     ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
 
-# --- Install isaac lab
-RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
-RUN cd IsaacLab \
-    && pip install isaacsim-rl \
-    && ./isaaclab.sh --install
-
-RUN apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
+# Change /root to /workspace for singularity
+RUN conda init bash
+SHELL ["bash", "-c"]
+RUN mv /root /workspace
+RUN ln -s /workspace /root
+WORKDIR /workspace
