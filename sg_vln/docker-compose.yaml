@@ -16,7 +16,7 @@ services:
             # - XAUTHORITY
         ports:
             - "5903:5900"
-            # - "6080:80"
+            - "6080:80"
         volumes:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw

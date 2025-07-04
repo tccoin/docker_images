@@ -97,7 +97,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
 ENV PATH $CONDA_DIR/bin:$PATH
 ENV PATH_BACKUP $PATH
-RUN conda create -n webvnc python=3.10
+RUN conda create -n webvnc python=3.6
 ENV PATH $CONDA_DIR/envs/webvnc/bin:$PATH_BACKUP
 
 # --- Install webvnc
@@ -178,15 +178,12 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:${LD_LIBRARY_PATH}
 
 WORKDIR /dependencies
 RUN pip uninstall -y urllib3 && pip install urllib3
-RUN conda create --name vln python=3.10
+RUN conda create --name vln python=3.9
 ENV PATH $CONDA_DIR/envs/vln/bin:$PATH
 SHELL ["conda", "run", "-n", "vln", "/bin/bash", "-c"]
 
 # --- Install habitat-sim
-RUN git clone --branch v0.3,3 https://github.com/facebookresearch/habitat-sim.git
-RUN cd habitat-sim \
-    && pip install -r requirements.txt \
-    && python setup.py install --headless --with-cuda --bullet
+RUN conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
 
 # --- Install habitat-lab
 RUN git clone --branch v0.3.3 https://github.com/facebookresearch/habitat-lab.git
@@ -195,14 +192,14 @@ RUN cd habitat-lab \
 
 
 # --- Install isaac lab
-RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
-RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
-RUN cd IsaacLab \
-    && pip install isaacsim-rl \
-    && ./isaaclab.sh --install
+# RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
+# RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+# RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
+# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
+# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
+# RUN cd IsaacLab \
+#     && pip install isaacsim-rl \
+#     && ./isaaclab.sh --install
 
 RUN apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
 
