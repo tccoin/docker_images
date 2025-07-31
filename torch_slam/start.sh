@@ -1,0 +1,1 @@
+docker compose run -P --name gs_slam slam
