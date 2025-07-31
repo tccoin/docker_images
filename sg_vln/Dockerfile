@@ -178,28 +178,21 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:${LD_LIBRARY_PATH}
 
 WORKDIR /dependencies
 RUN pip uninstall -y urllib3 && pip install urllib3
-RUN conda create --name vln python=3.9
+RUN conda create --name vln python=3.10
 ENV PATH $CONDA_DIR/envs/vln/bin:$PATH
 SHELL ["conda", "run", "-n", "vln", "/bin/bash", "-c"]
 
 # --- Install habitat-sim
-RUN conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+RUN git clone --branch v0.3,3 https://github.com/facebookresearch/habitat-sim.git
+RUN cd habitat-sim \
+    && pip install -r requirements.txt \
+    && python setup.py install --headless --with-cuda --bullet
 
 # --- Install habitat-lab
 RUN git clone --branch v0.3.3 https://github.com/facebookresearch/habitat-lab.git
 RUN cd habitat-lab \
     && pip install -e habitat-lab
 
-
-# --- Install isaac lab
-# RUN pip install isaacsim-extscache-kit==4.1.0 --extra-index-url https://pypi.nvidia.com
-# RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-# RUN git clone --branch v1.1.0 https://github.com/isaac-sim/IsaacLab.git
-# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/config/extension.toml
-# RUN sed -i 's/rsl-rl@/rsl-rl-lib@/g' IsaacLab/source/extensions/omni.isaac.lab_tasks/setup.py
-# RUN cd IsaacLab \
-#     && pip install isaacsim-rl \
-#     && ./isaaclab.sh --install
 
 RUN apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
 
@@ -228,7 +221,7 @@ RUN python -m pip install --no-cache-dir -e segment_anything
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade setuptools wheel twine check-wheel-contents
 RUN python -m pip install --no-cache-dir wheel
-RUN python -m pip install --no-cache-dir --no-build-isolation -e GroundingDINO
+RUN cd GroundingDINO && python setup.py install
 
 # --- Fix library issues
 RUN mkdir -p /usr/lib/dri/ && \
@@ -239,8 +232,8 @@ RUN mkdir -p /usr/lib/dri/ && \
 
 # --- Install VLN-Game dependencies
 WORKDIR /dependencies
-# RUN git clone https://github.com/ybgdgh/VLN-Game
-# RUN cd VLN-Game && pip install -r requirements.txt
+RUN git clone https://github.com/ybgdgh/VLN-Game
+RUN cd VLN-Game && pip install -r requirements.txt
 RUN pip install scikit-fmm==2023.4.2 scikit-image ifcfg tensorboard ultralytics tyro open_clip_torch wandb h5py hydra-core yacs pslpython textblob
 ENV GSA_PATH=/dependencies/Grounded-Segment-Anything
 RUN pip install git+https://github.com/xinyu1205/recognize-anything.git
@@ -253,9 +246,22 @@ RUN pip install nvitop
 RUN sudo apt-get update && sudo apt-get install -y htop
 
 # --- Download llama3.2-vision with ollama
-RUN ollama serve & sleep 5 ; ollama pull llama3.2-vision ; \
-    echo "kill 'ollama serve' process" ; \
-    ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
+# RUN ollama serve & sleep 5 ; ollama pull llama3.2-vision ; \
+#     echo "kill 'ollama serve' process" ; \
+#     ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
+
+# --- Install VLN-CE-Isaac
+WORKDIR /dependencies
+RUN git clone https://github.com/averyxi42/Isaac-Provider.git
+RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+RUN git clone https://github.com/yang-zj1026/IsaacLab.git
+RUN ln -s /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.vlnce /dependencies/IsaacLab/source/extensions/
+RUN ln -s /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.matterport /dependencies/IsaacLab/source/extensions/
+RUN bash /dependencies/IsaacLab/isaaclab.sh -i none
+RUN bash /dependencies/IsaacLab/isaaclab.sh -p -m pip install -e /dependencies/Isaac-Provider/scripts/rsl_rl
+RUN ln -s /media/sdd1/isaac_vlnce_assets /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.vlnce/assets
+
+RUN pip install pygame jsonpickle
 
 # Change /root to /workspace for singularity
 RUN conda init bash

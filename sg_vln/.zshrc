@@ -73,3 +73,4 @@ source ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighti
 # source /opt/ros/humble/setup.zsh
 # source /isaac-sim/setup_conda_env.sh
 export DISPLAY=:1
+export MESA_GL_VERSION_OVERRIDE=4.6

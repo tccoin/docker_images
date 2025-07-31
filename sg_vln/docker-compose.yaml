@@ -1,6 +1,6 @@
 services:
     vln:
-        image: curly/sg_vln:habitat3.3
+        image: curly/sg_vln:latest
         restart: always
         container_name: sg_vln
         entrypoint: zsh
@@ -17,6 +17,7 @@ services:
         ports:
             - "5903:5900"
             - "6080:80"
+            - "12345:12345"
         volumes:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
@@ -27,8 +28,9 @@ services:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/data:$HOME/.local/share/ov/data:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/documents:$HOME/Documents:rw
             - /home/junzhewu/Projects:/root/Projects:rw
-            - /home/junzhewu/data:/data:rw
+            - /media/sdd1/hm3d_dataset:/data:rw
             - /mnt/workspace/datasets/habitat_datasets:/mnt_habitat_datasets:rw
+            - /media/sdd1/isaac_vlnce_assets:/media/sdd1/isaac_vlnce_assets:rw
             # - /mnt/workspace/users/huyu/junzhe/VLN_dump:/root/Projects/VLN/ext_dump/:rw
             # - /tmp/.X11-unix:/tmp/.X11-unix:rw
             # - $HOME/.Xauthority:/root/.Xauthority:rw
