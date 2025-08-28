@@ -64,8 +64,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sudo apt-get install software-properties-common -y \
     && sudo add-apt-repository universe -y \
     && sudo apt-get update && sudo apt-get install curl -y \
-    && sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+    && export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') \
+    && curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" \
+    && sudo dpkg -i /tmp/ros2-apt-source.deb
 
 RUN sudo apt-get update --fix-missing \
     && sudo apt-get remove libbrotli1 -y \
@@ -97,6 +98,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
 ENV PATH $CONDA_DIR/bin:$PATH
 ENV PATH_BACKUP $PATH
+RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main --channel https://repo.anaconda.com/pkgs/r
 RUN conda create -n webvnc python=3.6
 ENV PATH $CONDA_DIR/envs/webvnc/bin:$PATH_BACKUP
 

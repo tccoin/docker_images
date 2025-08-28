@@ -105,6 +105,7 @@ RUN sudo bash debian_mkl.sh
 # --- Create conda environment
 WORKDIR /dependencies
 RUN pip uninstall -y urllib3 && pip install urllib3
+RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main --channel https://repo.anaconda.com/pkgs/r
 RUN conda create --name slam python=3.10
 ENV PATH $CONDA_DIR/envs/slam/bin:$PATH
 SHELL ["conda", "run", "-n", "slam", "/bin/bash", "-c"]
@@ -136,3 +137,39 @@ RUN python -m pip install --no-cache-dir --no-build-isolation -e grounding_dino
 RUN git clone https://github.com/nerfstudio-project/gsplat.git -b v1.5.2
 RUN pip install ninja numpy jaxtyping rich
 RUN pip install -e .
+
+# --- Install baspacho
+RUN git clone https://github.com/facebookresearch/baspacho.git
+WORKDIR baspacho
+# Note: to use static BLAS the option is really BLA_STATIC (https://cmake.org/cmake/help/latest/module/FindBLAS.html)
+RUN sudo apt-get install -y libopenblas-dev
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBLA_STATIC=ON \
+    ${BASPACHO_CUDA_ARGS} \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DBASPACHO_BUILD_TESTS=OFF -DBASPACHO_BUILD_EXAMPLES=OFF
+RUN cmake --build build -- -j16
+WORKDIR ..
+
+# --- Install torch
+ENV CUDA_HOME /usr/local/cuda-${CUDA_VERSION}
+RUN pip install ${TORCH_VERSION} --extra-index-url https://download.pytorch.org/whl/${DEVICE_TAG}
+
+# --- Install sparse suitesparse
+RUN conda install -c conda-forge suitesparse
+
+# --- Compile theseus wheel
+RUN pip install build wheel
+RUN git clone https://github.com/facebookresearch/theseus.git
+WORKDIR theseus
+RUN git fetch --all --tags
+RUN BASPACHO_ROOT_DIR=/home/$USER/slam_lib/baspacho \
+    THESEUS_FORCE_CUDA=${ENABLE_CUDA} \
+    TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
+    INCLUDE_THESEUS_LABS=${INCLUDE_LABS_STR} \
+    ${NIGHTLY_STR} \
+    pip install -e .
+
+# --- Install slam&gs libraries
+RUN pip install imageio accelerate einops matplotlib spatialmath-python icecream pytorch_memlab tensorboard opencv-python evo torchmetrics nerfview
+RUN pip install jupyter ipywidgets widgetsnbextension plotly nbformat
+RUN pip install trimesh ipdb point_cloud_utils se3_transformer_pytorch
