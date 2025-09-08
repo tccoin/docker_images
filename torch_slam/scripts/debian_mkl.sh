@@ -16,6 +16,9 @@ sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list
 apt-get update
 apt-get install -y --no-install-recommends intel-mkl-64bit-2018.2-046   ## wants 500+mb :-/  installs to 1.8 gb :-/
 
+# Disable Intel MKL APT source after install to avoid future apt update failures if key rotates
+mv /etc/apt/sources.list.d/intel-mkl.list /etc/apt/sources.list.d/intel-mkl.list.disabled || true
+
 ## update alternatives
 # update-alternatives --install /usr/lib/x86_64-linux-gnu/libblas.so     libblas.so-x86_64-linux-gnu      /opt/intel/mkl/lib/intel64/libmkl_rt.so 150
 # update-alternatives --install /usr/lib/x86_64-linux-gnu/libblas.so.3   libblas.so.3-x86_64-linux-gnu    /opt/intel/mkl/lib/intel64/libmkl_rt.so 150
