@@ -252,16 +252,14 @@ RUN sudo apt-get update && sudo apt-get install -y htop
 #     echo "kill 'ollama serve' process" ; \
 #     ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
 
-# --- Install VLN-CE-Isaac
+# --- Install Isaac Lab
 WORKDIR /dependencies
-RUN git clone https://github.com/averyxi42/Isaac-Provider.git
-RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
-RUN git clone https://github.com/yang-zj1026/IsaacLab.git
-RUN ln -s /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.vlnce /dependencies/IsaacLab/source/extensions/
-RUN ln -s /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.matterport /dependencies/IsaacLab/source/extensions/
-RUN bash /dependencies/IsaacLab/isaaclab.sh -i none
-RUN bash /dependencies/IsaacLab/isaaclab.sh -p -m pip install -e /dependencies/Isaac-Provider/scripts/rsl_rl
-RUN ln -s /media/sdd1/isaac_vlnce_assets /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.vlnce/assets
+RUN pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
+RUN git clone https://github.com/isaac-sim/IsaacLab.git \
+    && cd IsaacLab \
+    && git checkout v2.1.1
+RUN ln -s /isaac-sim /dependencies/IsaacLab/_isaac_sim
+RUN cd /dependencies/IsaacLab && ./isaaclab.sh --install
 
 RUN pip install pygame jsonpickle
 
