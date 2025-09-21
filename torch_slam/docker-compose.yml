@@ -27,8 +27,8 @@ services:
       - $HOME/.Xauthority:/home/${USER}/.Xauthority:rw
       - .zshrc:/home/${USER}/.zshrc:rw
       - .zsh_history:/home/${USER}/.zsh_history:rw
-      - /home/huyu/junzhe/Projects/:/workspace/Projects/
-      - /home/huyu/junzhe/slam_dataset:/data/
+      - $HOME/Projects/:/workspace/Projects/
+      - $HOME/data:/data/
     ulimits:
       nofile:
         soft: 65536

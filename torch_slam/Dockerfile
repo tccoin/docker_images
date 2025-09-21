@@ -1,6 +1,6 @@
 FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y locales \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
@@ -8,11 +8,8 @@ RUN apt-get update \
     && update-locale LANG=en_US.UTF-8
 
 # --- nvidia-container-runtime
-ENV NVIDIA_VISIBLE_DEVICES \
-    ${NVIDIA_VISIBLE_DEVICES:-all}
-ENV NVIDIA_DRIVER_CAPABILITIES \
-    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,compute,utility,display
-
+ENV NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,compute,utility,display
 
 # --- install libraries and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -87,10 +84,10 @@ RUN mkdir -p ~/.cache/gitstatus \
     | tar -zx -C ~/.cache/gitstatus/
 
 # --- Install conda and environment
-ENV CONDA_DIR /conda
+ENV CONDA_DIR=/conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh \
     && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
-ENV PATH $CONDA_DIR/bin:$PATH
+ENV PATH=$CONDA_DIR/bin:$PATH
 
 # --- Install CUDA
 RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run
@@ -105,8 +102,9 @@ RUN sudo bash debian_mkl.sh
 # --- Create conda environment
 WORKDIR /dependencies
 RUN pip uninstall -y urllib3 && pip install urllib3
+RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main --channel https://repo.anaconda.com/pkgs/r
 RUN conda create --name slam python=3.10
-ENV PATH $CONDA_DIR/envs/slam/bin:$PATH
+ENV PATH=$CONDA_DIR/envs/slam/bin:$PATH
 SHELL ["conda", "run", "-n", "slam", "/bin/bash", "-c"]
 
 # --- Install common python dependencies
@@ -119,20 +117,59 @@ RUN pip3 install pslpython open3d omegaconf git+https://github.com/openai/CLIP.g
 RUN git clone https://github.com/IDEA-Research/Grounded-SAM-2.git && \
     cd Grounded-SAM-2 && \
     git submodule update --init --recursive
-WORKDIR /dependencies/Grounded-SAM-2
-RUN cd checkpoints && bash download_ckpts.sh
-RUN cd gdino_checkpoints && bash download_ckpts.sh
+RUN cd Grounded-SAM-2/checkpoints && bash download_ckpts.sh
+RUN cd Grounded-SAM-2/gdino_checkpoints && bash download_ckpts.sh
 
-ENV CUDA_HOME /usr/local/cuda-12.1/
-ENV AM_I_DOCKER True
-ENV TORCH_CUDA_ARCH_LIST="6.0;7.0;7.5;8.0;8.6"
-ENV BUILD_WITH_CUDA 1
-RUN python -m pip install --upgrade pip "setuptools>=62.3.0,<75.9" wheel numpy \
-    opencv-python transformers supervision pycocotools addict yapf timm
-RUN pip install -e .
-RUN python -m pip install --no-cache-dir --no-build-isolation -e grounding_dino
+ENV CUDA_HOME=/usr/local/cuda-12.1/
+ENV AM_I_DOCKER=True
+ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6"
+ENV BUILD_WITH_CUDA=1
+RUN cd Grounded-SAM-2/ &&python -m pip install --upgrade pip "setuptools>=62.3.0,<75.9" wheel numpy \
+    opencv-python transformers supervision pycocotools addict yapf timm \
+    && pip install -e .
+RUN cd Grounded-SAM-2/ && python -m pip install --no-cache-dir --no-build-isolation -e grounding_dino
 
 # --- Install gaussian-splatting
 RUN git clone https://github.com/nerfstudio-project/gsplat.git -b v1.5.2
 RUN pip install ninja numpy jaxtyping rich
-RUN pip install -e .
+RUN apt install -y libglm-dev
+RUN cd gsplat && pip install -e .
+
+# --- Install sparse suitesparse
+RUN conda install -c conda-forge suitesparse
+
+## Update cmake
+RUN sudo apt-get install -y ca-certificates gpg wget \
+    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+    && sudo apt-get update \
+    && sudo apt-get install -y kitware-archive-keyring \
+    && sudo apt-get install -y --no-install-recommends cmake \
+    && gcc --version
+
+# --- Install baspacho
+RUN git clone https://github.com/facebookresearch/baspacho.git
+RUN sudo apt-get install -y libopenblas-dev
+ENV BASPACHO_CUDA_ARCHS="70;75;80;86"
+RUN cd baspacho \
+    && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBLA_STATIC=ON \
+    -DBASPACHO_USE_CUBLAS=1 \
+    -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.1/bin/nvcc \
+    -DBASPACHO_CUDA_ARCHS=${BASPACHO_CUDA_ARCHS} \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DBASPACHO_BUILD_TESTS=OFF -DBASPACHO_BUILD_EXAMPLES=OFF
+RUN cd baspacho && cmake --build build -j16
+
+# --- Compile theseus
+RUN git clone https://github.com/facebookresearch/theseus.git
+RUN cd theseus \
+    && BASPACHO_ROOT_DIR=/dependencies/baspacho \
+    THESEUS_FORCE_CUDA=1 \
+    TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
+    INCLUDE_THESEUS_LABS=1 \
+    pip install -e .
+
+# --- Install slam&gs libraries
+RUN pip install imageio accelerate einops matplotlib spatialmath-python icecream pytorch_memlab tensorboard opencv-python evo torchmetrics nerfview
+RUN pip install jupyter ipywidgets widgetsnbextension plotly nbformat
+RUN pip install trimesh ipdb point_cloud_utils se3_transformer_pytorch

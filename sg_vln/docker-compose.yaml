@@ -9,14 +9,15 @@ services:
             - PRIVACY_CONSENT=Y
             - VNC_PASSWORD=curly
             - RESOLUTION=1920x1080
-            # - DISPLAY=${DISPLAY}
-            # - QT_GRAPHICSSYSTEM=native
-            # - NVIDIA_DRIVER_CAPABILITIES=all
-            # - TERM=xterm-256color
-            # - XAUTHORITY
+            - DISPLAY=${DISPLAY}
+            - QT_GRAPHICSSYSTEM=native
+            - NVIDIA_DRIVER_CAPABILITIES=all
+            - TERM=xterm-256color
+            - XAUTHORITY
         ports:
             - "5908:5900"
             - "6088:80"
+            - "12345:12345"
         volumes:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
@@ -37,8 +38,21 @@ services:
             # - /home/huyu/junzhe/datasets:/data:rw
             # - /mnt/workspace/datasets/habitat_datasets:/mnt/workspace/datasets/habitat_datasets:rw
             # - /mnt/workspace/users/huyu/junzhe/VLN_dump:/root/Projects/VLN/ext_dump/:rw
-            # - /tmp/.X11-unix:/tmp/.X11-unix:rw
-            # - $HOME/.Xauthority:/root/.Xauthority:rw
+            # ISAAC Cache
+            - $HOME/isaac/cache_kit:/isaac-sim/kit/cache
+            - $HOME/isaac/cache_ov:/root/.cache/ov
+            - $HOME/isaac/cache_pip:/root/.cache/pip
+            - $HOME/isaac/cache_gl:/root/.cache/nvidia/GLCache
+            - $HOME/isaac/cache_compute:/root/.nv/ComputeCache
+            - $HOME/isaac/logs:/root/.nvidia-omniverse/logs
+            - $HOME/isaac/data:/root/.local/share/ov/data
+            - $HOME/isaac/lab_docs:/dependencies/IsaacLab/docs/_build
+            - $HOME/isaac/lab_logs:/dependencies/IsaacLab/logs
+            - $HOME/isaac/lab_data:/dependencies/IsaacLab/data_storage
+            # X11 Forwarding
+            - /tmp/.X11-unix:/tmp/.X11-unix:rw
+            - $HOME/.Xauthority:/root/.Xauthority:rw
+            # ZSH
             - .zshrc:/root/.zshrc:rw
             - .zsh_history:/root/.zsh_history:rw
         ulimits:
