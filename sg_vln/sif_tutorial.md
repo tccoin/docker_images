@@ -7,6 +7,7 @@ singularity overlay create --size 1024 ~/scratch/overlay.img
 ```
 singularity shell --nv --overlay ~/scratch/overlay.img sg_vln_isaac3.sif
 ```
+1. open tmux
 1. now setup the conda env:
 ```
 # replace /root to /workspace in $PATH and $PYTHONPATH
@@ -17,4 +18,7 @@ CONDA_DIR=/workspace/conda
 sed -i "s|/root|/workspace|g" $CONDA_DIR/bin/conda
 sed -i "s|/root|/workspace|g" $CONDA_DIR/bin/conda-env
 sed -i "s|/root|/workspace|g" $CONDA_DIR/envs/vln/bin/pip
+# init
+conda init bash
+bash
 ```
