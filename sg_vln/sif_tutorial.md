@@ -1,7 +1,7 @@
 1. make sure you link ~/scratch to your scratch folder, run:
 ```
 module load singularity
-singularity overlay create --size 1024 ~/scratch/overlay.img
+singularity overlay create --size 10240 ~/scratch/overlay.img
 ```
 1. start the sif with overlay file:
 ```
@@ -18,6 +18,8 @@ CONDA_DIR=/workspace/conda
 sed -i "s|/root|/workspace|g" $CONDA_DIR/bin/conda
 sed -i "s|/root|/workspace|g" $CONDA_DIR/bin/conda-env
 sed -i "s|/root|/workspace|g" $CONDA_DIR/envs/vln/bin/pip
+# avoid warning by adding this to bashrc
+echo "export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=1" >> ~/.bashrc
 # init
 conda init bash
 bash
