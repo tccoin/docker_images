@@ -6,3 +6,7 @@ docker pull nvcr.io/nvidia/isaac-sim:4.5.0
 # DOCKER_BUILDKIT=1 docker build --tag curly/vln_game:latest --ssh default .
 # DOCKER_BUILDKIT=1 docker build --progress=plain --tag curly/sg_vln:habitat3.3 .
 docker build --tag curly/sg_vln:latest .
+
+# docker build --progress=plain --tag curly/sg_vln:singularity1 -f Dockerfile_singularity .
+# singularity build sg_vln_isaac.sif docker-daemon://curly/sg_vln:singularity
+# bash generate_sif.sh

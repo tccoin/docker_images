@@ -64,9 +64,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sudo apt-get install software-properties-common -y \
     && sudo add-apt-repository universe -y \
     && sudo apt-get update && sudo apt-get install curl -y \
-    && export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') \
-    && curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" \
-    && sudo dpkg -i /tmp/ros2-apt-source.deb
+    && sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
 RUN sudo apt-get update --fix-missing \
     && sudo apt-get remove libbrotli1 -y \
@@ -88,18 +87,19 @@ RUN sudo apt-get install -y --no-install-recommends git
 RUN cd zsh && bash install_zsh.sh
 
 # install gitstatus
-RUN mkdir -p /root/.cache/gitstatus \
+RUN mkdir -p /workspace/.cache/gitstatus \
     && wget https://github.com/romkatv/gitstatus/releases/download/v1.5.4/gitstatusd-linux-x86_64.tar.gz -O - \
-    | tar -zx -C /root/.cache/gitstatus/
+    | tar -zx -C /workspace/.cache/gitstatus/
 
 # --- Install conda and environment
-ENV CONDA_DIR /root/conda
+ENV CONDA_DIR /workspace/conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh \
     && /bin/bash ~/miniconda.sh -b -p ${CONDA_DIR}
 ENV PATH $CONDA_DIR/bin:$PATH
 ENV PATH_BACKUP $PATH
-RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main --channel https://repo.anaconda.com/pkgs/r
-RUN conda create -n webvnc python=3.6
+RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
+    && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r \
+    && conda create -n webvnc python=3.6
 ENV PATH $CONDA_DIR/envs/webvnc/bin:$PATH_BACKUP
 
 # --- Install webvnc
@@ -199,7 +199,7 @@ RUN cd habitat-lab \
 RUN apt-get update && sudo apt-get install -y libgl1-mesa-dri libgl1-mesa-glx mesa-utils
 
 # --- Install common python dependencies
-RUN pip3 install torch==2.2.2 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 RUN wget https://anaconda.org/pytorch3d/pytorch3d/0.7.8/download/linux-64/pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2 \
     && conda install pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2 \
     && rm pytorch3d-0.7.8-py310_cu121_pyt222.tar.bz2
@@ -229,10 +229,10 @@ RUN cd GroundingDINO && python setup.py install
 RUN mkdir -p /usr/lib/dri/ && \
     ln -s /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so /usr/lib/dri/ && \
     ln -s /usr/lib/x86_64-linux-gnu/dri/radeonsi_dri.so /usr/lib/dri/ && \
-    mv /root/conda/envs/vln/lib/libstdc++.so.6 /root/conda/envs/vln/lib/libstdc++.so.6.old && \
-    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /root/conda/envs/vln/lib/libstdc++.so.6
+    mv /workspace/conda/envs/vln/lib/libstdc++.so.6 /workspace/conda/envs/vln/lib/libstdc++.so.6.old && \
+    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /workspace/conda/envs/vln/lib/libstdc++.so.6
 
-# --- Install SG-VLN dependencies
+# --- Install VLN-Game dependencies
 WORKDIR /dependencies
 RUN git clone https://github.com/ybgdgh/VLN-Game
 RUN cd VLN-Game && pip install -r requirements.txt
@@ -246,28 +246,42 @@ RUN pip install fairscale supervision==0.25.0 transformers==4.49.0 scipy==1.11.2
 RUN pip install duckdb 'ibis-framework[duckdb]' pins gcsfs 
 RUN pip install nvitop
 RUN sudo apt-get update && sudo apt-get install -y htop
-RUN pip install transformers datasets accelerate trl==0.19.0 peft huggingface-hub bitsandbytes tensorboard pyyaml pillow tf-keras torchmetrics
-RUN pip install yapf pycocotools
-RUN pip install --upgrade --no-cache-dir openai
+
 # --- Download llama3.2-vision with ollama
 # RUN ollama serve & sleep 5 ; ollama pull llama3.2-vision ; \
 #     echo "kill 'ollama serve' process" ; \
 #     ps -ef | grep 'ollama serve' | grep -v grep | awk '{print $2}' | xargs -r kill -9
 
-# --- Install Isaac Lab and Isaac Sim
+# --- Install VLN-CE-Isaac
 WORKDIR /dependencies
-RUN pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
-RUN git clone https://github.com/isaac-sim/IsaacLab.git \
-    && cd IsaacLab \
-    && git checkout v2.1.1
-RUN ln -s /isaac-sim /dependencies/IsaacLab/_isaac_sim
-RUN cd /dependencies/IsaacLab && ./isaaclab.sh --install
+RUN git clone https://github.com/averyxi42/Isaac-Provider.git
+RUN pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+RUN git clone https://github.com/yang-zj1026/IsaacLab.git
+RUN ln -s /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.vlnce /dependencies/IsaacLab/source/extensions/
+RUN ln -s /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.matterport /dependencies/IsaacLab/source/extensions/
+RUN bash /dependencies/IsaacLab/isaaclab.sh -i none
+RUN bash /dependencies/IsaacLab/isaaclab.sh -p -m pip install -e /dependencies/Isaac-Provider/scripts/rsl_rl
+RUN ln -s /media/sdd1/isaac_vlnce_assets /dependencies/Isaac-Provider/isaaclab_exts/omni.isaac.vlnce/assets
 
 RUN pip install pygame jsonpickle
 
 # Change /root to /workspace for singularity
 RUN conda init bash
-SHELL ["bash", "-c"]
 RUN mv /root /workspace
-RUN ln -s /workspace /root
-WORKDIR /workspace
+SHELL ["bash", "-c"]
+
+# Install VS Code Server (code-server) for web client access
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && curl -fsSL https://code-server.dev/install.sh | sh \
+    && rm -rf /var/lib/apt/lists/*
+
+# Default port for code-server
+ENV VSCODE_PORT=8080
+EXPOSE 8080
+
+# Copy startup script and set permissions
+COPY start-vscode.sh /usr/local/bin/start-vscode.sh
+RUN chmod +x /usr/local/bin/start-vscode.sh
+
+ENTRYPOINT ["/bin/tini","--"]
+CMD ["/usr/local/bin/start-vscode.sh"]

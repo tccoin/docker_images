@@ -15,9 +15,8 @@ services:
             # - TERM=xterm-256color
             # - XAUTHORITY
         ports:
-            - "5903:5900"
-            - "6080:80"
-            - "12345:12345"
+            - "5908:5900"
+            - "6088:80"
         volumes:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
@@ -28,14 +27,15 @@ services:
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/data:$HOME/.local/share/ov/data:rw
             # - $HOME/Projects/VLN/isaac_sim/isaac_files/documents:$HOME/Documents:rw
             # VINO
-            # - /home/junzhewu/Projects:/root/Projects:rw
-            # - /media/sdd1/hm3d_dataset:/data:rw
-            # - /mnt/workspace/datasets/habitat_datasets:/mnt_habitat_datasets:rw
-            # - /media/sdd1/isaac_vlnce_assets:/media/sdd1/isaac_vlnce_assets:rw
+            - /home/junzhewu/Projects:/root/Projects:rw
+            - /media/sdd1/hm3d_dataset:/data:rw
+            - /media/sdd1/outdoor_env:/outdoor_env:rw
+            - /mnt/workspace/datasets/habitat_datasets:/mnt_habitat_datasets:rw
+            - /media/sdd1/isaac_vlnce_assets:/media/sdd1/isaac_vlnce_assets:rw
             # GOLDEEN
-            - /home/huyu/junzhe/Projects:/root/Projects:rw
-            - /home/huyu/junzhe/datasets:/data:rw
-            - /mnt/workspace/datasets/habitat_datasets:/mnt/workspace/datasets/habitat_datasets:rw
+            # - /home/huyu/junzhe/Projects:/root/Projects:rw
+            # - /home/huyu/junzhe/datasets:/data:rw
+            # - /mnt/workspace/datasets/habitat_datasets:/mnt/workspace/datasets/habitat_datasets:rw
             # - /mnt/workspace/users/huyu/junzhe/VLN_dump:/root/Projects/VLN/ext_dump/:rw
             # - /tmp/.X11-unix:/tmp/.X11-unix:rw
             # - $HOME/.Xauthority:/root/.Xauthority:rw
@@ -50,5 +50,59 @@ services:
                 reservations:
                     devices:
                         - driver: nvidia
-                          count: all
+                          device_ids: [ "1" ]
+                          capabilities: [ gpu ]
+
+    vln_vscode:
+        image: curly/sg_vln:vscode
+        restart: always
+        container_name: sg_vln
+        environment:
+            - ACCEPT_EULA=Y
+            - PRIVACY_CONSENT=Y
+            - VNC_PASSWORD=curly
+            - RESOLUTION=1920x1080
+            # - DISPLAY=${DISPLAY}
+            # - QT_GRAPHICSSYSTEM=native
+            # - NVIDIA_DRIVER_CAPABILITIES=all
+            # - TERM=xterm-256color
+            # - XAUTHORITY
+        ports:
+            - "5911:5900"
+            - "6011:80"
+            - "8080:8080"
+        volumes:
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/kit:/isaac-sim/kit/cache:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/ov:$HOME/.cache/ov:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/pip:$HOME/.cache/pip:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/glcache:$HOME/.cache/nvidia/GLCache:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/cache/computecache:$HOME/.nv/ComputeCache:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/logs:$HOME/.nvidia-omniverse/logs:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/data:$HOME/.local/share/ov/data:rw
+            # - $HOME/Projects/VLN/isaac_sim/isaac_files/documents:$HOME/Documents:rw
+            # VINO
+            - /home/junzhewu/Projects:/root/Projects:rw
+            - /media/sdd1/hm3d_dataset:/data:rw
+            - /media/sdd1/outdoor_env:/outdoor_env:rw
+            - /mnt/workspace/datasets/habitat_datasets:/mnt_habitat_datasets:rw
+            - /media/sdd1/isaac_vlnce_assets:/media/sdd1/isaac_vlnce_assets:rw
+            # GOLDEEN
+            # - /home/huyu/junzhe/Projects:/root/Projects:rw
+            # - /home/huyu/junzhe/datasets:/data:rw
+            # - /mnt/workspace/datasets/habitat_datasets:/mnt/workspace/datasets/habitat_datasets:rw
+            # - /mnt/workspace/users/huyu/junzhe/VLN_dump:/root/Projects/VLN/ext_dump/:rw
+            # - /tmp/.X11-unix:/tmp/.X11-unix:rw
+            # - $HOME/.Xauthority:/root/.Xauthority:rw
+            - .zshrc:/root/.zshrc:rw
+            - .zsh_history:/root/.zsh_history:rw
+        ulimits:
+            nofile:
+                soft: 65536
+                hard: 65536
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: [ "1" ]
                           capabilities: [ gpu ]
