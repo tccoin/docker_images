@@ -25,8 +25,8 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - $HOME/.Xauthority:/home/${USER}/.Xauthority:rw
-      - .zshrc:/home/${USER}/.zshrc:rw
-      - .zsh_history:/home/${USER}/.zsh_history:rw
+      - .zshrc:/root/.zshrc:rw
+      - .zsh_history:/root/.zsh_history:rw
       - $HOME/Projects/:/workspace/Projects/
       - $HOME/data:/data/
     ulimits:

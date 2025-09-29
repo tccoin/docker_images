@@ -1,1 +1,1 @@
-docker build -t curly/torch_slam:latest .
+docker build -t curly/torch_slam:cuda121 .
